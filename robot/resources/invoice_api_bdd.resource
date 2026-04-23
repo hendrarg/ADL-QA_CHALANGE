@@ -1,7 +1,6 @@
 *** Settings ***
 Documentation     Keywords bergaya BDD (Given / When / Then) untuk Invoice API.
 Resource          common.resource
-Library           ../libraries/InvoiceRobotLibrary.py
 
 *** Keywords ***
 # --- Session / auth ---
@@ -129,9 +128,5 @@ Every List Invoice Matches Its Detail
     FOR    ${inv}    IN    @{invoices}
         ${iid}=    Get From Dictionary    ${inv}    id
         ${detail}=    When I Get Invoice Detail As Object    ${iid}
-        Compare Invoice List Item To Detail    ${inv}    ${detail}
+        Dictionaries Should Be Equal    ${inv}    ${detail}
     END
-
-Unbilled Summary Matches Pending From List
-    [Arguments]    ${invoices}    ${summary}
-    Unbilled Summary Should Match Pending Calculation    ${invoices}    ${summary}
