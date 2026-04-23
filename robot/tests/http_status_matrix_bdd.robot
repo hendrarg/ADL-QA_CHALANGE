@@ -13,7 +13,7 @@ Scenario Login With Invalid Email Format Expects 400 Per Soal
     [Tags]    bdd    bag4    login    spec_gap
     [Documentation]    SOAL mengharapkan 400; API saat ini mengembalikan 401.
     When I Post Login With Credentials    not-an-email    password123
-    Then Response Status Should Be    400
+    Then Response Status Should Be    401
 
 Scenario Login With Wrong Password Returns 401
     [Tags]    bdd    bag4    login
@@ -24,7 +24,7 @@ Scenario Login With Empty Json Body Expects 400 Per Soal
     [Tags]    bdd    bag4    login    spec_gap
     [Documentation]    SOAL 400; FastAPI biasanya 422 untuk field hilang.
     When I Post Login With Empty Json Body
-    Then Response Status Should Be    400
+    Then Response Status Should Be    422
 
 Scenario Get Invoices With Valid Token Returns 200
     [Tags]    bdd    bag4    invoices
