@@ -1,0 +1,4 @@
+# Robot Framework + BDD-style keywords (Given/When/Then)
+# Install: pip install -r requirements-robot.txt
+robotframework>=6.1
+robotframework-requests>=0.9.7

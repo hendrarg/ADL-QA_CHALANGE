@@ -1,0 +1,83 @@
+================================================================================
+DATA READINESS ASSESSMENT — Invoice API (Bagian 1)
+Base URL: http://localhost:8010
+Endpoints diaudit: GET /invoices, GET /invoices/{id}
+Klaim developer: data bersih, tidak ada null, tanggal ISO YYYY-MM-DD, amount selalu positif.
+================================================================================
+
+RINGKASAN EKSEKUTIF
+-------------------
+Klaim developer TIDAK sesuai dengan data aktual di response API. Ditemukan null pada
+amount, format tanggal non-ISO, nilai amount nol, serta ketidakkonsistenan antara
+daftar invoice dan detail untuk invoice tertentu. Selain itu, endpoint daftar dan
+detail dapat mengembalikan HTTP 500 secara intermiten (perilaku tidak stabil untuk
+smoke test otomatis).
+
+--------------------------------------------------------------------------------
+TEMUAN #1 — Field null (melanggar "tidak ada null")
+--------------------------------------------------------------------------------
+ID Invoice : inv_002
+Field      : totalAmount
+Nilai      : null
+Status     : PENDING
+Dampak     : Konsumen data tidak boleh mengasumsikan amount numerik selalu ada;
+             perhitungan agregat harus menangani null (mis. dianggap 0 atau di-skip
+             sesuai aturan bisnis).
+
+--------------------------------------------------------------------------------
+TEMUAN #2 — Format tanggal bukan YYYY-MM-DD (melanggar "format tanggal konsisten")
+--------------------------------------------------------------------------------
+ID Invoice : inv_003
+Field      : date
+Nilai      : "07-10-2023" (DD-MM-YYYY, ambigu dengan MM-DD-YYYY)
+
+ID Invoice : inv_005
+Field      : date
+Nilai      : "10/09/2023" (slash separator, bukan ISO)
+
+ID Invoice : inv_008
+Field      : date
+Nilai      : "12-10-2023" (bukan ISO 8601 date-only)
+
+Dampak     : Parser tanggal harus defensif; sorting/filter by date raw string tidak
+             aman tanpa normalisasi.
+
+--------------------------------------------------------------------------------
+TEMUAN #3 — Amount tidak selalu "positif" (nol bukan positif)
+--------------------------------------------------------------------------------
+ID Invoice : inv_007
+Field      : totalAmount
+Nilai      : 0
+Status     : DRAFT
+Catatan    : Secara matematika 0 bukan positif; klaim "selalu positif" gagal jika
+             nol diperbolehkan.
+
+--------------------------------------------------------------------------------
+TEMUAN #4 — Inkonsistensi GET /invoices vs GET /invoices/{id} (kritis untuk automation)
+--------------------------------------------------------------------------------
+ID Invoice     : inv_001
+GET /invoices  : totalAmount = 1499.99 (nilai dimodifikasi di layer list)
+GET /invoices/inv_001 : totalAmount = 1500.00 (nilai sumber asli)
+Dampak         : Validasi "list harus sama dengan detail" akan gagal meskipun data
+                 "benar" di salah satu sisi; ini bug integritas data antar-endpoint.
+
+--------------------------------------------------------------------------------
+TEMUAN #5 — Respon 500 intermiten pada GET /invoices dan GET /invoices/{id}
+--------------------------------------------------------------------------------
+Gejala  : Kadang HTTP 500 "Internal Server Error" tanpa pola input yang berbeda.
+Dampak  : Smoke test otomatis menjadi flaky; disarankan retry terbatas + metrik
+          keandalan, dan perbaikan di sisi server.
+
+================================================================================
+CATATAN UNTUK BAGIAN 4 (Matrix HTTP) — Perilaku aktual vs ekspektasi soal
+================================================================================
+- POST /users/login dengan body kosong/kurang field: FastAPI/Pydantic umumnya
+  mengembalikan 422 Unprocessable Entity, bukan 400 seperti contoh matrix soal
+  (berlaku juga untuk body JSON {} maupun body kosong zero-length).
+- Email format tidak valid (mis. tanpa "@") namun password salah/kombinasi tidak
+  terdaftar: API mengembalikan 401 "Invalid credentials", bukan 400 khusus format
+  email, karena tidak ada validator format email terpisah di endpoint login.
+
+Dokumentasi ini menjadi dasar strategi scripting Bagian 2 (assertion bermakna,
+perbandingan list-detail, penanganan null dan format tanggal) serta penyesuaian
+ekspektasi status code jika mengikuti implementasi aktual vs teks soal.
