@@ -1,0 +1,6 @@
+name: Test
+variables:
+  - name: URL
+    value: http://localhost:8010
+  - secret: true
+    name: access_token
