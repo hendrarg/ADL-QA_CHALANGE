@@ -2,6 +2,10 @@
 Documentation     Keywords bergaya BDD (Given / When / Then) untuk Invoice API.
 Resource          common.resource
 
+*** Variables ***
+${AUTH_TOKEN}       ${EMPTY}
+${LAST_RESPONSE}    ${NONE}
+
 *** Keywords ***
 # --- Session / auth ---
 Invoice Api Session Is Ready

@@ -1,4 +1,8 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:system",
-    "python-envs.pythonProjects": []
+    "python-envs.pythonProjects": [],
+    "python.defaultInterpreterPath": "C:\\Users\\Asep\\miniconda3\\python.exe",
+    "files.associations": {
+        "*.robot": "robotframework"
+    }
 }
